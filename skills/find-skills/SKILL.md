@@ -58,10 +58,11 @@ Example user requests:
 6. Distinguish official, curated, community-maintained, awesome-list, and reference-only resources.
 7. Include repository links for recommended external skills.
 8. Include installation or adaptation instructions for every recommended external skill.
-9. When star counts, activity, APIs, install commands, or repository contents may have changed, verify current sources before relying on them.
-10. Do not instruct the user to run unknown install scripts blindly.
-11. Prefer manual inspection and safe installation over `curl | bash` style commands.
-12. If search results are not a good fit, say so clearly and recommend modification or custom-skill creation.
+9. When star counts, download/install counts, activity, APIs, install commands, or repository contents may have changed, verify current sources before relying on them.
+10. For every externally recommended GitHub or catalog skill, include both GitHub stars and download/install count when available. If either metric cannot be found, write `not found` or `not listed` explicitly instead of omitting it.
+11. Do not instruct the user to run unknown install scripts blindly.
+12. Prefer manual inspection and safe installation over `curl | bash` style commands.
+13. If search results are not a good fit, say so clearly and recommend modification or custom-skill creation.
 
 ## Workflow
 
@@ -122,6 +123,23 @@ awesome agent skills <category>
 site:github.com <category> skill SKILL.md
 ```
 
+### Step 2.1: Expand Beyond Literal Keywords
+
+Do not rely only on the user's exact words or on a single `npx skills find` query. Before concluding that few skills exist, generate a small search set from different angles:
+
+1. `Literal query`: the user's original wording.
+2. `Task synonyms`: alternate names for the same job, including nouns, verbs, and domain terms.
+3. `Workflow stages`: upstream and downstream phases that may appear in broader skills.
+4. `Inputs and outputs`: file types, artifacts, APIs, or deliverables the skill may handle.
+5. `Tool and platform terms`: agent names, package managers, and common directory conventions.
+6. `Quality and review terms`: audit, reviewer, validator, checker, polish, critique, benchmark, submission, or deploy.
+7. `Repository structure terms`: `SKILL.md`, `skills/`, `.claude/skills`, `.codex/skills`, `references/`, `scripts/`, and `assets/`.
+8. `Marketplace and index terms`: skills.sh, skilld, SkillsAuth, SkillMD, GitHub topics, awesome lists, and curated catalogs.
+
+For complex workflows, search by lifecycle rather than only by label. For example, a request for "full paper writing" should also search for `manuscript lifecycle`, `academic pipeline`, `research to publication`, `literature review`, `submission`, `revision`, `review response`, `claim evidence`, and `IMRAD`, not only `paper writing`.
+
+Use at least three meaningfully different query families when the first search returns too few or too narrow results.
+
 ### Step 3: Evaluate Candidates
 
 Evaluate every candidate with these criteria:
@@ -131,7 +149,8 @@ Evaluate every candidate with these criteria:
 | Workflow fit | Does it solve the user's actual workflow, not just match keywords? |
 | Relevance | Does it directly match the requested task? |
 | Official status | Is it official, curated, experimental, community-maintained, or reference-only? |
-| Popularity | Stars, forks, installs, mentions, adoption, or ecosystem visibility. |
+| Popularity | GitHub stars, forks, skills.sh installs, npm/download counts when relevant, mentions, adoption, or ecosystem visibility. |
+| Metrics freshness | Whether stars and download/install counts were verified from current sources; mark unavailable metrics explicitly. |
 | Activity | Recent commits, releases, issues, and maintenance status. |
 | Installability | Clear local installation path or compatible skill structure. |
 | Structure | Does it contain `SKILL.md`, scripts, examples, assets, or docs? |
@@ -189,14 +208,15 @@ For every recommended external skill or repository, include:
 - Official/community classification.
 - What it is suitable for.
 - Installation or adaptation method.
+- GitHub stars and download/install count for external GitHub or catalog results.
 - Notes, limitations, or safety checks.
 
 Use this table format when helpful:
 
 ```markdown
-| Rank | Skill / Repository | Type | Link | Best For | Method | Notes |
-|---|---|---|---|---|---|---|
-| 1 | ... | Official / Community | https://github.com/... | ... | `npx skills add ...` or skill-installer helper | ... |
+| Rank | Skill / Repository | Type | Link | Stars | Downloads / Installs | Best For | Method | Notes |
+|---|---|---|---|---|---|---|---|---|
+| 1 | ... | Official / Community | https://github.com/... | 1.2k / not found | 10k installs / not listed | ... | `npx skills add ...` or skill-installer helper | ... |
 ```
 
 ## Installation Methods
@@ -296,7 +316,7 @@ Briefly explain why this path fits the user's actual workflow.
 
 ## Candidate Comparison
 
-Provide a ranked table. Each row must include link, type, fit, method, and limitation.
+Provide a ranked table. Each external row must include link, type, GitHub stars, download/install count, fit, method, and limitation. For local-only skills, use `local` or `not applicable` for metrics.
 
 ## Installation or Modification Details
 
@@ -308,7 +328,7 @@ Give 1-3 prompts showing how to use the installed or modified skill.
 
 ## Notes and Risks
 
-Mention official/community status, star count volatility, compatibility, and security checks.
+Mention official/community status, star/download count volatility, compatibility, and security checks.
 ```
 
 ## Required Content in Final Answer
@@ -318,9 +338,11 @@ For each recommended external skill, include:
 1. Skill or repository name.
 2. Repository or catalog link.
 3. Official/community classification.
-4. Main use case.
-5. Installation or adaptation method.
-6. Caveat or limitation, if any.
+4. GitHub stars, if available; otherwise state `not found`.
+5. Download/install count, if available; otherwise state `not listed`.
+6. Main use case.
+7. Installation or adaptation method.
+8. Caveat or limitation, if any.
 
 For each recommendation to modify or create a skill, include:
 
@@ -331,7 +353,7 @@ For each recommendation to modify or create a skill, include:
 
 ## Search Query Examples
 
-Use or adapt these queries depending on the user's request:
+Use or adapt these queries depending on the user's request. Treat them as starting points, then expand with synonyms, lifecycle stages, input/output artifacts, and adjacent workflow terms.
 
 ### Official Skills
 
@@ -355,6 +377,10 @@ agent skills SKILL.md GitHub stars
 codex slides skill pptx SKILL.md
 agent skill PowerPoint pptx
 presentation skill Codex GitHub
+deck generation SKILL.md
+slides authoring agent skill
+pptx python-pptx skill
+keynote presentation workflow skill
 ```
 
 ### Image Skills
@@ -381,6 +407,11 @@ paper writing skill Codex
 academic writing skill SKILL.md
 technical writing agent skill
 research paper writing skills GitHub
+manuscript lifecycle agent skill
+academic pipeline SKILL.md
+research to publication skill
+literature review submission revision response skill
+claim evidence reviewer writing skill
 ```
 
 ### Coding and Review
@@ -424,10 +455,11 @@ When adapting a skill, preserve:
 Before responding, check:
 
 - Did I inspect local skills or user-provided skill files first?
-- Did I search current sources if popularity or repository status matters?
+- Did I search current sources if popularity, stars, download/install counts, or repository status matters?
 - Did I distinguish official from community repositories?
 - Did I avoid overclaiming compatibility?
 - Did I include repository links?
+- Did I include GitHub stars and download/install counts for every recommended external GitHub or catalog skill, or explicitly mark missing metrics?
 - Did I include an install or adaptation method for every recommended external skill?
 - Did I include example usage prompts when useful?
 - Did I mention safety checks for third-party repositories?
