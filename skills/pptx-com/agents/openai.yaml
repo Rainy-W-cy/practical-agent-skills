@@ -1,0 +1,8 @@
+interface:
+  display_name: "PPTX COM"
+  short_description: "Create and review PowerPoint decks through Windows COM"
+  default_prompt: "Use $pptx-com to create or refine a PowerPoint presentation with native editable objects."
+
+policy:
+  allow_implicit_invocation: true
+
