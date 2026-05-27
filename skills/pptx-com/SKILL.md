@@ -14,6 +14,7 @@ Use desktop Microsoft PowerPoint through Windows COM to work with native, editab
 - If the user asks to create a new deck from uploaded or specified documents, PDFs, reports, or synthesized source materials, require an approved detailed Markdown slide plan before creating any `.pptx`, whether or not a template is provided.
 - If the user already provides a plan, review it for sufficient slide-level detail and required production decisions, show any gaps or adjustments, and request approval to use it; do not generate a redundant replacement plan when the supplied plan is adequate.
 - Ask each time whether the PowerPoint window should remain visible during write operations.
+- Before producing or substantially revising slides, ask the user to choose a generation execution mode: `快速批量生成` or `PowerPoint 可见逐页生成`. Preserve the existing fast batch-generation path; use visible progressive generation only when the user selects it.
 - Default to saving a new file. Never overwrite an original deck or template unless the user explicitly approves the exact output path and overwrite action.
 - Do not delete slides, discard originals, or perform broad replacements without explicit approval.
 
@@ -31,6 +32,13 @@ PowerShell or task-specific script
 Prefer native PowerPoint objects for text, shapes, connectors, tables, charts, notes, images, themes, and layouts. Do not use `PptxGenJS`, raw PPTX XML editing, or a PowerPoint MCP server as the default generation/editing backend.
 
 Read `references/powerpoint-com-operations.md` before writing task-specific COM automation or when diagnosing COM behavior.
+
+### Generation Execution Modes
+
+- `快速批量生成`: Use the existing COM production flow to create or update the approved deck efficiently, then perform the required validation and QA.
+- `PowerPoint 可见逐页生成`: Keep PowerPoint visible and make progress observable in the open presentation. Build the deck slide by slide, navigate to the slide currently being constructed, add its principal elements in meaningful stages, and save at safe checkpoints so the user can watch progress and intervene if needed.
+- Both modes use the same approved plan, content constraints, template rules, native editable PowerPoint objects, save policy, and final QA requirements.
+- Progressive generation is an execution/display option only. Do not reduce validation, introduce unsupported claims, or alter agreed visual/content decisions because the user selected it.
 
 ## Supported Work
 
@@ -160,6 +168,7 @@ Before any creation, edit, copy, export, or preview-render operation, present an
 - Whether PDF export is needed.
 - Whether generated images or a specified image directory may be used.
 - Whether the output is a quick draft or formal presentation.
+- Generation execution mode: `快速批量生成` or `PowerPoint 可见逐页生成`.
 - For source-based creation of a new deck, whether a detailed Markdown plan has been approved, either newly generated or user-supplied and reviewed.
 
 ## Validation and QA
