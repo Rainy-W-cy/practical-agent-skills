@@ -57,6 +57,15 @@ $slide.Shapes.AddPicture($imagePath, 0, -1, $left, $top, $width, $height)
 $pres.SaveAs($outputPath)
 ```
 
+## 复杂公式与 Office Math
+
+- 对分式、上下标、求和、条件概率、矩阵、帽符号或多步推导，优先在 PowerPoint 中创建可编辑的 Office Math 公式对象。
+- Microsoft 365 的 PowerPoint 支持将 LaTeX 数学表达式转换为 Office Math（OMML）；在可可靠自动化时，可将经确认的 LaTeX 基准导入公式区域并转换为专业格式。
+- PowerPoint COM 路径必须先通过任务内的最小测试确认公式对象可建立并正确保存。不能可靠建立时，不得将复杂公式静默改成普通文本框；应向用户说明并征求是否采用矢量公式回退。
+- 写入脚本中保留一份与页面公式对应的基准表达式清单，便于导出预览后逐项核对。
+- 在当前验证通过的 Windows PowerPoint COM 路径中，可在选定文本承载区后调用 `InsertBuildingBlocksEquationsGallery`，写入经确认的 `UnicodeMath` 线性表达式，再调用 `EquationProfessional` 转换为专业格式；生成后同时检查 `TextFrame2.TextRange.MathZones.Count` 与页面预览。
+- `EquationProfessional` 会按分式、求和和大括号结构自动扩张公式的实际显示高度。排版时应为公式保留充足垂直空间，并在预览中确认其未超出装饰底框或侵入相邻内容；复杂大公式优先使用开放留白区域而不是紧贴公式的固定高度卡片。
+
 ## 生成执行模式
 
 制作或大幅修改幻灯片前，先确认用户选择以下哪一种执行模式。
