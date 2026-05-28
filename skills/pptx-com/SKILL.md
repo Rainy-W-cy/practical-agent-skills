@@ -72,9 +72,10 @@ If the user supplies or identifies documents, PDFs, reports, or synthesized cont
 3. If the user supplies a plan, review it rather than duplicating it: verify page count, per-slide content, source/evidence mapping, template usage if any, design requirements, and unresolved production decisions. Request approval after documenting necessary corrections or confirming it is adequate.
 4. Name a newly generated plan `<topic>_ppt_plan.md` in the specified output directory, or in the current workspace if no output directory has yet been specified.
 5. Include in a newly generated plan the source analysis, proposed page count, speaking duration when inferable or supplied, template mapping when a template exists, visual direction, color/font proposal, image-generation suggestion, and a detailed per-slide plan.
-6. Make every accepted plan auditable: identify slide objective, core takeaway, intended on-slide content, data/evidence, visual presentation, source location, and unresolved questions or risks.
-7. Even if the user requests a quick PPT draft, require an approved abbreviated but still reviewable plan before generating `.pptx`.
-8. After plan approval, confirm the output/save/display/image/PDF options before performing COM write operations.
+6. If reference images are also supplied for recreating PPT diagrams or layouts, include a content-to-visual mapping: source document facts first, reference image visual structure second, and the proposed mapping between document content and image-inspired PPT objects.
+7. Make every accepted plan auditable: identify slide objective, core takeaway, intended on-slide content, data/evidence, visual presentation, source location, and unresolved questions or risks.
+8. Even if the user requests a quick PPT draft, require an approved abbreviated but still reviewable plan before generating `.pptx`.
+9. After plan approval, confirm the output/save/display/image/PDF options before performing COM write operations.
 
 Read `references/document-to-deck-planning.md` whenever this workflow applies.
 
@@ -148,10 +149,34 @@ Read `references/formula-workflow.md` whenever a slide contains complex formulas
 
 ## Images, Figures, and Diagrams
 
+Read `references/reference-image-diagram-recreation.md` when the task involves imitating, recreating, redrawing, or making a PPT version of a reference image, paper figure, architecture diagram, relation map, screenshot, or visual draft.
+
 User image folders:
 
 - Read image assets only from directories or files the user identifies for the task.
 - Do not silently substitute or alter evidence figures.
+
+Image-reference recreation:
+
+- When the user asks to imitate, recreate, redraw, or make a PPT version of a diagram, chart, layout, screenshot, draft, or visual reference image, first produce a short interpretation plan and obtain confirmation before creating or editing slides.
+- The interpretation plan must identify the reference image, intended slide/page target, visible text to reproduce, diagram structure, key shapes, colors, approximate layout, editable-object goal, and any illegible or ambiguous content.
+- If the user supplies documents, PDFs, reports, or notes together with reference images, treat the documents as the content authority and the images as visual/layout references unless the user explicitly says otherwise.
+- In that combined case, analyze the documents first, extract the facts/terms/relationships to be shown, then interpret the reference image, then present a source-to-visual mapping for approval before production.
+- Ask whether the goal is faithful visual recreation, editable conceptual recreation, or stylistic inspiration. Do not assume exact copying is desired when the user only provides an image.
+- Do not invent missing labels, data values, axis text, legends, formulas, or relationships from the image. Mark uncertain content and request user confirmation or source material.
+- Default to PowerPoint COM native editable objects only for simple diagrams and ordinary flowcharts where the object count, arrows, and layout are easy to control.
+- For slightly complex diagrams, module diagrams, relation maps, architecture sketches, or diagrams with non-trivial arrows/groups, prefer the installed draw.io capability when available. Do not modify draw.io skill/tool rules; use it as the diagram authoring backend.
+- Draw.io workflow: use the draw.io skill/capability to create the source diagram, use the local draw.io application to export both SVG and PNG, inspect the PNG for layout/visual QA, and inspect the SVG text/rendering for mojibake, missing labels, and PowerPoint compatibility before importing into PowerPoint.
+- A draw.io-exported SVG is PPT-compatible only if it has no visible mojibake/missing labels and does not contain unsupported HTML text fallbacks such as `foreignObject`, embedded `data:image` label fallbacks, or the draw.io warning text `Text is not SVG - cannot display`. If any of these appear, treat the SVG as not suitable for PPT insertion.
+- Import the draw.io-exported SVG into PowerPoint through COM only after the SVG passes the no-mojibake/no-missing-label and PPT-compatibility checks. Keep the PNG as a preview/reference artifact for QA.
+- If the SVG is invalid, visually broken in PowerPoint, has mojibake, drops labels, contains unsupported HTML/foreignObject text, or otherwise fails the SVG check, use the draw.io-exported PNG as the PPT fallback after telling the user that the inserted diagram will be a raster image and not conveniently editable inside PowerPoint.
+- If draw.io software or the draw.io skill/capability is not installed or unavailable, tell the user and ask whether to install/enable it or fall back to PowerPoint COM native drawing/SVG generation.
+- For dense paper figures, relation maps, multi-branch taxonomy diagrams, or diagrams with many small labels/edges, use a diagram-first workflow: produce a diagram specification, render it as SVG/draw.io/vector artwork when high visual fidelity matters, then insert it into PowerPoint through COM.
+- Before producing a complex recreated diagram, ask the user to confirm one production mode: `高保真视觉复刻` (SVG/vector inserted, limited PPT editability), `PPT 原生可编辑简化版` (editable but less faithful), or `混合版` (vector base plus editable labels/callouts where practical). If a non-native/vector/image path is chosen, explicitly state which parts will not be conveniently editable in PowerPoint.
+- The diagram specification must list nodes, visible text, hierarchy/regions, connector directions, colors, approximate layout, source-to-visual mapping, and any uncertain labels. Obtain approval for this specification before rendering.
+- For COM-native recreated diagrams, the specification must also include connector routing, object layering, drawing order, and special-symbol handling before writing the automation script.
+- If the user wants a new diagram inspired by a reference image and based on documents, the documents define content and relationships; the reference image defines only visual grammar unless the user explicitly says to copy its content.
+- For formal outputs based on a reference image, include reference-image comparison in QA: check text, labels, hierarchy, directionality, relative placement, color intent, aspect ratio, alignment, and whether any approved ambiguities remain unresolved.
 
 Generated images:
 
@@ -164,8 +189,9 @@ Diagram defaults:
 
 | Diagram | Production path |
 | --- | --- |
-| Simple flowchart, timeline, comparison, callout sequence | Editable native PowerPoint shapes/connectors through COM |
-| Complex architecture or relation map | Create with draw.io or SVG, then insert into PowerPoint |
+| Very simple diagram or ordinary flowchart | Editable native PowerPoint shapes/connectors through COM |
+| Slightly complex module diagram, relation map, architecture sketch, or grouped arrow diagram | Prefer draw.io skill/source; export SVG and PNG with draw.io software, verify PNG layout and SVG text, import SVG if valid, otherwise insert PNG fallback with editability warning |
+| Complex architecture, dense relation map, or paper taxonomy figure | Use draw.io/SVG/vector workflow, then insert into PowerPoint after confirming editability tradeoff |
 | Fully editable complex diagram explicitly requested | Use native objects as far as practical and explain tradeoffs |
 
 ## Required Confirmation Before Writes
@@ -179,6 +205,8 @@ Before any creation, edit, copy, export, or preview-render operation, present an
 - Whether PowerPoint should remain visible during execution.
 - Whether PDF export is needed.
 - Whether generated images or a specified image directory may be used.
+- For image-reference recreation, whether the image interpretation plan and uncertain text/data have been approved.
+- For document-plus-reference-image recreation, whether the source-to-visual mapping has been approved and any conflict between source content and image appearance has been resolved.
 - Whether the output is a quick draft or formal presentation.
 - Generation execution mode: `快速批量生成` or `PowerPoint 可见逐页生成`.
 - For source-based creation of a new deck, whether a detailed Markdown plan has been approved, either newly generated or user-supplied and reviewed.
@@ -199,9 +227,13 @@ Formal presentation:
 - Confirm it opens successfully.
 - Produce a preview of the deck for visual inspection.
 - Perform one full-deck visual review.
+- When slides recreate a reference image, compare the preview against the approved interpretation plan and reference image.
 - When formulas are present, perform formula-specific comparison against the approved formula baseline.
 - Fix discovered issues.
-- Recheck affected slides after fixes before delivery.
+- Recheck affected slides after fixes before delivery; a repair is not complete until a new preview or equivalent visual check confirms the repaired slide.
+- Limit formal visual QA to at most two preview/check cycles unless the user explicitly asks to continue. If the second QA pass still shows that the slide or diagram has not reached the approved target, stop, explain the remaining mismatch, and recommend the next production mode or required source material instead of continuing blind patching.
+- For draw.io-based diagrams, QA must include both the exported PNG preview and the SVG text/rendering check before importing or delivering the PPT. If SVG import is rejected and PNG fallback is used, the final PPT preview must be checked again with the inserted PNG.
+- For complex recreated diagrams, if repeated repair cycles still fail to match the approved specification closely enough within the two-QA limit, stop and report the remaining mismatch and the recommended next production mode.
 
 ## Bundled Scripts
 
