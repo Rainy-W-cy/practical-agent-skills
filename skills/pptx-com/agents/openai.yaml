@@ -1,8 +1,7 @@
 interface:
   display_name: "PPTX COM"
-  short_description: "Create and review PowerPoint decks through Windows COM"
-  default_prompt: "Use $pptx-com to create or refine a PowerPoint presentation with native editable objects."
+  short_description: "Create, edit, review, and QA PowerPoint decks from documents, existing decks, templates, data, formulas, and reference images through Windows COM."
+  default_prompt: "Use $pptx-com for PPT work. For document/PDF/paper-based decks, first create or review a detailed Markdown slide plan. For existing deck edits, confirm the edit scope and output copy. For reference-image recreation, first create a reference-image specification. For charts/tables, confirm the data baseline. Confirm the task subdirectory, save strategy, and QA level before writing."
 
 policy:
   allow_implicit_invocation: true
-

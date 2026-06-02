@@ -1,11 +1,24 @@
 ---
 name: pptx-com
-description: Use this skill whenever the user asks to read, summarize, review, create, revise, polish, format, preview, or export PowerPoint/PPT/PPTX presentations on Windows, including presentation creation from notes, documents, images, synthesized content, an existing deck, or a template. Use PowerPoint desktop automation through Windows COM for file-producing or editing work, with explicit confirmation before writes. For any new PPT based on documents, PDFs, reports, or synthesized source materials, require a detailed approved Markdown slide plan before producing PPTX unless the user already supplied a sufficient plan. For clear academic paper or literature-presentation tasks, offer optional coordination with nature-paper2ppt.
+description: Use this skill whenever the user asks to read, summarize, review, create, revise, polish, format, preview, or export PowerPoint/PPT/PPTX/slides/deck presentations on Windows, including Chinese requests such as 制作PPT, 生成演示文稿, 根据PDF/论文/文档/报告/笔记/网页/Notion做PPT, 上传材料生成PPT, 修改已有PPT, 用模板做PPT, 制作数据图表/表格/指标页, 复现/临摹/重画图片或论文图到PPT, and image-to-PPT diagram recreation. Use PowerPoint desktop automation through Windows COM for file-producing or editing work, with explicit confirmation before writes. For any new PPT based on documents, PDFs, reports, papers, webpages, Notion pages, or synthesized source materials, require a detailed approved Markdown slide plan before producing PPTX unless the user already supplied a sufficient plan. For non-trivial existing-deck edits, require an approved edit scope and output-copy strategy. For any PPT diagram recreation from a reference image, screenshot, paper figure, or visual draft, require an approved reference-image interpretation/specification before producing the PPT. For data charts/tables, require an approved data baseline. For clear academic paper or literature-presentation tasks, offer optional coordination with nature-paper2ppt.
 ---
 
 # PPTX COM
 
 Use desktop Microsoft PowerPoint through Windows COM to work with native, editable `.pptx` presentations. This skill is intended for a Windows environment with PowerPoint installed. Do not require a PowerPoint MCP server when local shell execution can call COM directly.
+
+## Hard Gates and Routing
+
+Read `references/hard-gates-and-routing.md` at the start of every PPT creation, edit, export, source-based deck, or reference-image recreation task.
+
+- For any new deck based on documents, PDFs, papers, reports, notes, or synthesized source material, require a detailed user-approved Markdown slide plan before creating any `.pptx`, regardless of whether a template is supplied.
+- If the user already supplies a plan, review it for completeness and request approval to use it; do not duplicate an adequate plan.
+- For any diagram, layout, screenshot, paper figure, or visual draft recreated into PPT, require a user-approved reference-image interpretation/specification before creating or editing slides.
+- If the reference image or paper figure is more than a very simple diagram, do not directly draw it with PowerPoint COM by default. First ask the user to choose one route: draw.io source plus SVG/PNG export, PowerPoint-native editable simplified version, or hybrid version. If the user does not choose, recommend draw.io for slightly complex module/architecture/relationship diagrams.
+- For non-trivial edits to an existing deck, require an approved edit scope and modification plan before writing to a copy.
+- For data-driven charts, tables, metric slides, or quantitative visuals, require an approved data baseline before production.
+- Before any task that creates PPT files, scripts, previews, draw.io files, SVG/PNG exports, PDFs, or other artifacts, require confirmation of a dedicated task subdirectory and keep all generated files inside it unless the user explicitly chooses another location.
+- Do not perform COM writes, exports, preview rendering, template copying, overwrites, or broad edits until the relevant plan/specification, task directory, output path, and save strategy have been confirmed.
 
 ## Operating Boundary
 
@@ -32,6 +45,7 @@ PowerShell or task-specific script
 Prefer native PowerPoint objects for text, shapes, connectors, tables, charts, notes, images, themes, and layouts. Do not use `PptxGenJS`, raw PPTX XML editing, or a PowerPoint MCP server as the default generation/editing backend.
 
 Read `references/powerpoint-com-operations.md` before writing task-specific COM automation or when diagnosing COM behavior.
+Read `references/failure-handling.md` when COM, draw.io, SVG import, preview export, PDF export, file access, or any task-specific script fails.
 
 ### Generation Execution Modes
 
@@ -39,6 +53,26 @@ Read `references/powerpoint-com-operations.md` before writing task-specific COM 
 - `PowerPoint 可见逐页生成`: Keep PowerPoint visible and make progress observable in the open presentation. Build the deck slide by slide, navigate to the slide currently being constructed, add its principal elements in meaningful stages, and save at safe checkpoints so the user can watch progress and intervene if needed.
 - Both modes use the same approved plan, content constraints, template rules, native editable PowerPoint objects, save policy, and final QA requirements.
 - Progressive generation is an execution/display option only. Do not reduce validation, introduce unsupported claims, or alter agreed visual/content decisions because the user selected it.
+
+## Task Subdirectory
+
+For any task that creates or modifies PPT files or related artifacts, confirm a dedicated task subdirectory before writing. Recommended structure:
+
+```text
+<YYYY-MM-DD_short-topic>/
+  plan/       # slide plans, reference specs, QA notes
+  source/     # copied or referenced source materials when approved
+  scripts/    # task-specific PowerShell or helper scripts
+  drawio/     # .drawio source files
+  exports/    # SVG, PNG, PDF, and other exported assets
+  previews/   # slide previews and QA screenshots
+  output/     # final .pptx and optional .pdf
+```
+
+- Ask the user to confirm the parent folder, directory name, and whether source/template/reference files should be copied into `source/` or only referenced by path.
+- Store generated plans, reference specifications, scripts, draw.io files, exported SVG/PNG/PDF, previews, QA notes, and final PPTX inside the confirmed task directory.
+- Do not scatter `.ps1`, `.drawio`, `.svg`, `.png`, preview, plan, or QA files in the workspace root unless the user explicitly requests it.
+- Keep the directory rule lightweight: read only files needed for the current step, and do not recursively load the whole task directory into context.
 
 ## Supported Work
 
@@ -48,6 +82,7 @@ Read `references/powerpoint-com-operations.md` before writing task-specific COM 
 - Copy and populate a template or revise an existing presentation.
 - Insert user-provided images and, when allowed, images generated by the currently available image generation tool.
 - Draw simple process diagrams, timelines, comparisons, and callout layouts as editable PowerPoint objects.
+- Create or modify data tables, charts, metric slides, and quantitative comparison visuals only after confirming the data baseline.
 - Create slides containing mathematical definitions, derivations, loss functions, metrics, quantization expressions, and other complex formulas with formula-specific verification.
 - Export PDF only when requested and confirmed.
 
@@ -63,6 +98,8 @@ For creation tasks, establish:
 
 When building from summarized content, convert material into a slide-level narrative before opening PowerPoint for production. Each slide should have one primary communication job. Do not invent missing claims, figures, citations, or data.
 
+If the source is a Notion page, webpage, URL, or other external link, treat it as read-only source material: fetch or inspect only what is needed, record the page title/URL/access date or equivalent source identity in the plan, and do not write back to the source unless the user explicitly requests a separate write operation under that tool's rules.
+
 ### Source-Based Creation Planning Gate
 
 If the user supplies or identifies documents, PDFs, reports, or synthesized content and requests a new presentation, regardless of whether a `.pptx` or `.potx` template is provided:
@@ -71,9 +108,9 @@ If the user supplies or identifies documents, PDFs, reports, or synthesized cont
 2. If no plan is supplied, produce a detailed Markdown planning document and request approval.
 3. If the user supplies a plan, review it rather than duplicating it: verify page count, per-slide content, source/evidence mapping, template usage if any, design requirements, and unresolved production decisions. Request approval after documenting necessary corrections or confirming it is adequate.
 4. Name a newly generated plan `<topic>_ppt_plan.md` in the specified output directory, or in the current workspace if no output directory has yet been specified.
-5. Include in a newly generated plan the source analysis, proposed page count, speaking duration when inferable or supplied, template mapping when a template exists, visual direction, color/font proposal, image-generation suggestion, and a detailed per-slide plan.
+5. Include in a newly generated plan the source analysis, proposed page count, speaking duration when inferable or supplied, template mapping when a template exists, visual direction, color/font proposal, image-generation suggestion, and a detailed per-slide execution plan.
 6. If reference images are also supplied for recreating PPT diagrams or layouts, include a content-to-visual mapping: source document facts first, reference image visual structure second, and the proposed mapping between document content and image-inspired PPT objects.
-7. Make every accepted plan auditable: identify slide objective, core takeaway, intended on-slide content, data/evidence, visual presentation, source location, and unresolved questions or risks.
+7. Make every accepted plan auditable and editable by the user: for each slide identify slide objective, core takeaway, intended on-slide content, formulas and their intended rendering, image/figure choice and production route, table/chart/data baseline, required references/workflows to read, source location, and unresolved questions or risks.
 8. Even if the user requests a quick PPT draft, require an approved abbreviated but still reviewable plan before generating `.pptx`.
 9. After plan approval, confirm the output/save/display/image/PDF options before performing COM write operations.
 
@@ -86,6 +123,24 @@ Read `references/document-to-deck-planning.md` whenever this workflow applies.
 - For a clear academic presentation task, check whether `nature-paper2ppt` is available. If installed, offer optional joint use and wait for the user's decision. If it is unavailable, explain its optional role and ask whether the user wants help installing it.
 - When jointly used, `nature-paper2ppt` supplies academic argument planning, evidence/figure selection, and slide narrative; this skill remains responsible for approved PowerPoint COM production, native-object refinement, and validation.
 - Do not automatically enable the joint workflow or install another skill without user confirmation.
+- For academic paper presentations, the slide plan must include a figure/block handling decision for important paper visuals: cite/insert the original figure, crop or screenshot a key block, recreate/redraw it as a PPT diagram, create an explanatory simplified version, or skip it with a reason. Do not assume all important paper figures should be recreated; choose the handling mode based on evidence integrity, editability, visual complexity, and presentation value, then request user approval.
+- When inserting or cropping original paper figures, screenshots, or evidence blocks, keep source attribution visible or recorded: paper title/author/year when available, figure/table number, page or section, and whether the visual is original, cropped, recreated, or simplified. Do not present copied or cropped paper visuals as newly generated results.
+
+## Existing Deck Edits
+
+Read `references/existing-deck-edit-workflow.md` when the task edits, restructures, polishes, translates, shortens, expands, restyles, reviews-and-fixes, or exports from an existing presentation.
+
+- Default to editing a confirmed output copy.
+- For non-trivial edits, present affected slides/sections, intended changes, preserved content, removal/hide/replace decisions, and QA level before writing.
+- Do not silently delete, hide, summarize, or move existing slide content without approval.
+
+## Data, Charts, and Tables
+
+Read `references/data-chart-table-workflow.md` whenever slides contain factual numbers, units, data tables, metric cards, charts, axes, legends, percentages, dates, sample sizes, or quantitative comparisons.
+
+- Establish a data baseline before production.
+- Do not infer missing values, units, denominators, axes, legends, or category labels without confirmation.
+- For formal outputs, compare rendered charts/tables against the approved baseline during QA.
 
 ## Template Workflow
 
@@ -131,6 +186,7 @@ Read `references/typography-and-layout-zh.md` before designing a deck without a 
 - Before writing complex formulas, establish a formula baseline from the user-provided expression, source material, or an explicitly approved correction. Record unresolved operator, index, delimiter, and symbol ambiguities before production.
 - Prefer editable native Office Math equations in PowerPoint for fractions, sums, integrals, matrices, subscripts/superscripts, hats, absolute values, conditional probability, aligned expressions, and multi-step derivations.
 - Do not typeset complex formulas as ordinary text boxes merely because plain text is easier to automate. If native equation creation cannot be completed reliably, stop and request approval for a clearly labeled vector-formula fallback.
+- For formal slides, formula-like text such as `sqrt(d_k)`, `QK^T`, matrix expressions, complexity terms, or mathematical operators must either be rendered as native Office Math or explicitly approved as simplified explanatory text. Do not leave formula approximations in ordinary text without review.
 - Treat formula correctness as content integrity: do not silently rewrite mathematical definitions, change normalization factors, replace operators such as `round`, `floor`, or `clip`, or infer missing bounds without confirmation.
 - For formal presentations containing formulas, perform formula-specific QA after preview rendering: compare each rendered equation against the approved baseline and verify fractions, exponents, indices, summation limits, hats, absolute values, conditional bars, brackets, operators, minus signs, and surrounding interpretation text.
 - If a formula uses data values, constants, or reported results, verify those values against the approved source in addition to checking rendering.
@@ -199,13 +255,18 @@ Diagram defaults:
 Before any creation, edit, copy, export, or preview-render operation, present and confirm:
 
 - Input deck/template/materials.
+- Dedicated task subdirectory, directory name, and where generated plans, scripts, draw.io files, exports, previews, and output files will be stored.
 - Proposed output path and file name.
 - Whether work is performed on a copy.
 - Whether any existing file will be overwritten; recommend no overwrite.
 - Whether PowerPoint should remain visible during execution.
 - Whether PDF export is needed.
 - Whether generated images or a specified image directory may be used.
+- For draw.io routes, whether draw.io skill/capability and local draw.io software are available, where `.drawio`, SVG, and PNG files will be saved, and whether PNG fallback is acceptable if SVG is not PowerPoint-compatible.
+- For existing deck edits, whether the edit scope, affected slides, modification plan, preservation/removal choices, and output copy have been approved.
+- For data charts/tables, whether the data baseline, units, axes, labels, legends, rounding/simplification policy, and source attribution have been approved.
 - For image-reference recreation, whether the image interpretation plan and uncertain text/data have been approved.
+- For any reference-image/paper-figure recreation beyond a very simple diagram, whether the user approved draw.io, PPT-native simplified, or hybrid production route before drawing.
 - For document-plus-reference-image recreation, whether the source-to-visual mapping has been approved and any conflict between source content and image appearance has been resolved.
 - Whether the output is a quick draft or formal presentation.
 - Generation execution mode: `快速批量生成` or `PowerPoint 可见逐页生成`.
@@ -227,6 +288,7 @@ Formal presentation:
 - Confirm it opens successfully.
 - Produce a preview of the deck for visual inspection.
 - Perform one full-deck visual review.
+- Treat mojibake, replacement glyphs, unexpected symbols, wrong bullet characters, broken math text, missing labels, or white-on-light unreadable text in previews as QA failures that must be fixed before delivery.
 - When slides recreate a reference image, compare the preview against the approved interpretation plan and reference image.
 - When formulas are present, perform formula-specific comparison against the approved formula baseline.
 - Fix discovered issues.
